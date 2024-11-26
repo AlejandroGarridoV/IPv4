@@ -32,86 +32,64 @@ def calculate_network_details():
         messagebox.showerror("Error", "Por favor, introduce una dirección IP válida en formato CIDR (e.g., 192.168.1.1/24)")
 
 
-def subnetting():
-    # Mostrar la caja de entrada para el número de subredes
-    def calculate_subnets():
-        ip_input = ip_entry.get()
-        subnets_input = subnets_entry.get()
+def calculate_subnets():
+    ip_input = ip_entry.get()
+    subnets_input = subnets_entry.get()
 
-        try:
-            ip_obj = ipaddress.IPv4Interface(ip_input)
+    try:
+        ip_obj = ipaddress.IPv4Interface(ip_input)
 
-            if subnets_input:
-                subnets = int(subnets_input)
-                # Calcular la máscara de subred que se necesita para el número de subredes
-                prefix_length = int(math.ceil(math.log(subnets, 2)))
-                new_network = ip_obj.network.prefixlen + prefix_length
-                subnet_mask = ipaddress.IPv4Network(f'0.0.0.0/{new_network}').netmask
-                subnet_hosts = (2 ** (32 - new_network)) - 2  # Excluir la dirección de red y broadcast
+        if subnets_input:
+            subnets = int(subnets_input)
+            # Calcular la máscara de subred que se necesita para el número de subredes
+            prefix_length = int(math.ceil(math.log(subnets, 2)))
+            new_network = ip_obj.network.prefixlen + prefix_length
+            subnet_mask = ipaddress.IPv4Network(f'0.0.0.0/{new_network}').netmask
+            subnet_hosts = (2 ** (32 - new_network)) - 2  # Excluir la dirección de red y broadcast
 
-                # Mostrar los resultados de la red principal
-                hosts_label_value.set(subnet_hosts)
-                mask_label_value.set(subnet_mask)
+            # Mostrar los resultados de la red principal
+            hosts_label_value.set(subnet_hosts)
+            mask_label_value.set(subnet_mask)
 
-                # Mostrar las subredes
-                subnets_result = list(ip_obj.network.subnets(new_prefix=new_network))
+            # Mostrar las subredes
+            subnets_result = list(ip_obj.network.subnets(new_prefix=new_network))
 
-                # Limpiar cualquier subred anterior
-                for widget in subnets_results_frame.winfo_children():
-                    widget.destroy()
+            # Limpiar cualquier subred anterior
+            for widget in subnets_results_frame.winfo_children():
+                widget.destroy()
 
-                # Agregar cada subred en su propio bloque
-                for idx, subnet in enumerate(subnets_result, 1):
-                    subnet_frame = tk.Frame(subnets_results_frame, bg="#DDD6CC", pady=10)
-                    subnet_frame.pack(fill="x", padx=10, pady=5)
+            # Agregar cada subred en su propio bloque
+            for idx, subnet in enumerate(subnets_result, 1):
+                subnet_frame = tk.Frame(subnets_results_frame, bg="#DDD6CC", pady=10)
+                subnet_frame.pack(fill="x", padx=10, pady=5)
 
-                    # ID de subred
-                    subnet_label = tk.Label(subnet_frame, text=f"Subred {idx}: {subnet.network_address}/{subnet.prefixlen}",
-                                            font=("Serif", 16), fg="#19222B", bg="#DDD6CC")
-                    subnet_label.pack(side="top", padx=10)
+                # ID de subred
+                subnet_label = tk.Label(subnet_frame, text=f"Subred {idx}: {subnet.network_address}/{subnet.prefixlen}",
+                                        font=("Serif", 16), fg="#19222B", bg="#DDD6CC")
+                subnet_label.pack(side="top", padx=10)
 
-                    # Rango de host y host disponibles
-                    subnet_range = f"{list(subnet.hosts())[0]} - {list(subnet.hosts())[-1]}"
-                    subnet_hosts_available = subnet.num_addresses - 2
+                # Rango de host y host disponibles
+                subnet_range = f"{list(subnet.hosts())[0]} - {list(subnet.hosts())[-1]}"
+                subnet_hosts_available = subnet.num_addresses - 2
 
-                    subnet_range_label = tk.Label(subnet_frame, text=f"Rango de Hosts: {subnet_range}", font=("Serif", 16),
-                                                  fg="#19222B", bg="#DDD6CC")
-                    subnet_range_label.pack(side="top", padx=10)
+                subnet_range_label = tk.Label(subnet_frame, text=f"Rango de Hosts: {subnet_range}", font=("Serif", 16),
+                                              fg="#19222B", bg="#DDD6CC")
+                subnet_range_label.pack(side="top", padx=10)
 
-                    subnet_hosts_label = tk.Label(subnet_frame, text=f"Hosts Disponibles: {subnet_hosts_available}",
+                subnet_hosts_label = tk.Label(subnet_frame, text=f"Hosts Disponibles: {subnet_hosts_available}",
+                                              font=("Serif", 16), fg="#19222B", bg="#DDD6CC")
+                subnet_hosts_label.pack(side="top", padx=10)
+
+                # Dirección de broadcast
+                subnet_broadcast_label = tk.Label(subnet_frame, text=f"Broadcast: {subnet.broadcast_address}",
                                                   font=("Serif", 16), fg="#19222B", bg="#DDD6CC")
-                    subnet_hosts_label.pack(side="top", padx=10)
+                subnet_broadcast_label.pack(side="top", padx=10)
 
-                    # Dirección de broadcast
-                    subnet_broadcast_label = tk.Label(subnet_frame, text=f"Broadcast: {subnet.broadcast_address}",
-                                                      font=("Serif", 16), fg="#19222B", bg="#DDD6CC")
-                    subnet_broadcast_label.pack(side="top", padx=10)
+        else:
+            messagebox.showerror("Error", "Por favor ingresa un número de subredes.")
 
-            else:
-                messagebox.showerror("Error", "Por favor ingresa un número de subredes.")
-
-        except ValueError:
-            messagebox.showerror("Error", "Por favor ingresa una IP válida.")
-
-    # Crear una entrada de texto para pedir el número de subredes
-    subnet_input_window = tk.Toplevel(window)
-    subnet_input_window.title("Número de Subredes")
-    subnet_input_window.geometry("400x200")
-    subnet_input_window.configure(bg="#19222B")
-
-    label_subnets = tk.Label(subnet_input_window, text="Introduce el número de subredes:", font=("Serif", 16),
-                             fg="#DDD6CC", bg="#19222B")
-    label_subnets.pack(pady=10)
-
-    subnets_entry = tk.Entry(subnet_input_window, font=("Arial", 14), width=25, bg="#DDD6CC", fg="#19222B",
-                             relief="flat")
-    subnets_entry.pack(pady=10)
-
-    # Botón para calcular subredes
-    calculate_button_subnets = tk.Button(subnet_input_window, text="Calcular Subredes", font=("Arial", 14, "bold"),
-                                         bg="#B84357", fg="#DDD6CC", activebackground="#BD9240",
-                                         activeforeground="#19222B", relief="flat", command=calculate_subnets)
-    calculate_button_subnets.pack(pady=10)
+    except ValueError:
+        messagebox.showerror("Error", "Por favor ingresa una IP válida.")
 
 
 # Crear ventana principal
@@ -139,10 +117,22 @@ calculate_button = tk.Button(entry_frame, text="Calcular", font=("Arial", 14, "b
                              command=calculate_network_details)
 calculate_button.grid(row=0, column=2, padx=10, pady=5)
 
+# Entrada para el número de subredes
+subnet_frame = tk.Frame(window, bg="#19222B", pady=10)
+subnet_frame.pack(pady=10)
+
+subnets_label = tk.Label(subnet_frame, text="Introduce el número de subredes:", font=("Serif", 16), fg="#DDD6CC", bg="#19222B")
+subnets_label.grid(row=0, column=0, padx=10, pady=5)
+
+subnets_entry = tk.Entry(subnet_frame, font=("Arial", 14), width=25, bg="#DDD6CC", fg="#19222B", relief="flat")
+subnets_entry.grid(row=0, column=1, padx=10, pady=5)
+
+calculate_button_subnets = tk.Button(subnet_frame, text="Calcular Subredes", font=("Arial", 14, "bold"), bg="#B84357", fg="#DDD6CC",
+                                     activebackground="#BD9240", activeforeground="#19222B", relief="flat", command=calculate_subnets)
+calculate_button_subnets.grid(row=0, column=2, padx=10, pady=5)
+
 # Botón para abrir el cálculo de subredes
-subnetting_button = tk.Button(window, text="Subnetting", font=("Arial", 14, "bold"), bg="#B84357", fg="#DDD6CC",
-                              activebackground="#BD9240", activeforeground="#19222B", relief="flat", command=subnetting)
-subnetting_button.pack(pady=10)
+# (Este botón ya no es necesario, ya que ahora la entrada está en la interfaz principal)
 
 # Mensaje de red o host
 host_message = tk.StringVar()
