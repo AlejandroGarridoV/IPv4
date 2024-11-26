@@ -3,7 +3,6 @@ from tkinter import messagebox
 import ipaddress
 import math
 
-
 def calculate_network_details():
     ip_input = ip_entry.get()
     try:
@@ -171,9 +170,23 @@ hosts_label_value = variables["hosts_label_value"]
 range_label_value = variables["range_label_value"]
 broadcast_label_value = variables["broadcast_label_value"]
 
-# Resultados de Subredes
-subnets_results_frame = tk.Frame(window, bg="#19222B")
+# Crear Canvas y scrollbar para el área de resultados
+canvas = tk.Canvas(window)
+canvas.pack(side="left", fill="both", expand=True)
+
+scrollbar = tk.Scrollbar(window, orient="vertical", command=canvas.yview)
+scrollbar.pack(side="right", fill="y")
+
+canvas.configure(yscrollcommand=scrollbar.set)
+
+# Crear un Frame dentro del Canvas para los resultados de las subredes
+subnets_results_frame = tk.Frame(canvas, bg="#19222B")
 subnets_results_frame.pack(fill="both", padx=20, pady=20)
+
+canvas.create_window((0, 0), window=subnets_results_frame, anchor="nw")
+
+# Configurar la barra de desplazamiento para que se actualice cuando haya más contenido
+subnets_results_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 
 # Iniciar la aplicación
 window.mainloop()
